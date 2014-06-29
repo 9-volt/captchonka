@@ -9,3 +9,11 @@ Help:
 Train:
 
 `python captchonka --train "inputs/example.png"`
+
+## Credits
+
+Based on [CIntruder](https://github.com/epsylon/cintruder).
+
+## License
+
+General Public License v3
