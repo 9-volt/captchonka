@@ -15,6 +15,9 @@ class captchonka():
     if self.options.verbose:
       print "Options", self.options
 
+    project_folder = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+    self.options.output_dir = os.path.join(project_folder, 'output')
+
   def get_OCR(self, captcha):
     options = self.options
 
@@ -48,6 +51,7 @@ class captchonka():
   def run(self):
     options = self.options
 
+    # List mods
     if options.listmods:
       if options.verbose:
         print "======================================="
@@ -63,6 +67,15 @@ class captchonka():
       print "run with --mod [modname]"
       sys.exit(2)
 
+    # Train
+    if options.train:
+      captcha = options.train
+      self.train(captcha)
+
+    # Crack
+    if options.crack:
+      captcha = options.crack
+      self.crack(captcha)
 
 if __name__ == "__main__":
   app = captchonka()
