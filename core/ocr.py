@@ -4,7 +4,6 @@
 from PIL import Image, ImageEnhance
 from operator import itemgetter
 import os, hashlib, time, sys, subprocess, platform, cv2, numpy, cv2.cv as cv
-# from helpers import ImageHelpers
 import helpers as ImageHelpers
 
 class CaptchonkaOCR(object):
@@ -58,7 +57,6 @@ class CaptchonkaOCR(object):
     self.cleanDenoise()
     self.erodeAndDilate()
     self.blackAndWhite()
-    # self.divideIntoCharacters()
 
   def cleanDenoise(self):
     options = self.options

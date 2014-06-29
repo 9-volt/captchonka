@@ -1,6 +1,5 @@
 import cv2.cv as cv
 
-# class ImageHelpers(object):
 def smoothImage(im, nbiter=0, filter=cv.CV_GAUSSIAN):
   for i in range(nbiter):
     cv.Smooth(im, im, filter)

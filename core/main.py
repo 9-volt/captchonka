@@ -4,6 +4,9 @@
 import os, sys
 from core.options import CaptchonkaOptions
 
+# Make core modules available to mods
+sys.path.append('core/')
+
 class captchonka():
   def __init__(self):
     self.captchaPath = ""
@@ -26,13 +29,11 @@ class captchonka():
         print "Loading module:", options.mod
         print "==============="
 
-      try:
-        sys.path.append('core/mods/%s/'%(options.mod))
-        exec("from " + options.mod + " import CaptchonkaOCR")
-      except Exception:
-        print "This module: '", options.mod, "' exists?. Try --list to view available modules\n"
-        sys.exit(2)
-      OCR = CaptchonkaOCR(captcha, options)
+      # Did not add try/catch because if an error is in
+      sys.path.append('core/mods/%s/'%(options.mod))
+      exec("from " + options.mod + " import CaptchonkaOCRMod")
+
+      OCR = CaptchonkaOCRMod(captcha, options)
 
     else:
       from core.ocr import CaptchonkaOCR
