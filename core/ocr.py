@@ -95,7 +95,24 @@ class CaptchonkaOCR(object):
         if not os.path.exists(char_dir):
           os.makedirs(char_dir)
 
-  def getOriginalImage(self):
+  # ###############
+  # Train part
+  # ###############
+
+  def train(self):
+    processed = self.getImage()
+    processed = self.cleanImage(processed)
+
+    # List of images
+    characters = self.getCharacters(processed)
+
+    # Save characters on hard disc
+    self.saveCharacters(characters)
+
+    return self.isTrainingSuccessful(characters)
+
+  # Returns image to work with
+  def getImage(self):
     original = None
     try:
       original = Image.open(self._captcha)
@@ -103,14 +120,6 @@ class CaptchonkaOCR(object):
       print "Error during reading captcha. Either path is wrond or file format is not supported"
 
     return original
-
-  def train(self):
-    processed = self.getOriginalImage()
-    processed = self.cleanImage(processed)
-    self.divideIntoCharacters(processed)
-
-  def crack(self):
-    pass
 
   def cleanImage(self, processed):
     self.newStep()
@@ -148,13 +157,14 @@ class CaptchonkaOCR(object):
 
     return blank
 
-  def divideIntoCharacters(self, processed):
+  # Returns a list of images ordered by their position in original image
+  def getCharacters(self, processed):
+    characters = []
+
     inletter = False
     foundletter = False
     start = 0
     end = 0
-
-    letters = []
 
     for y in range(processed.size[0]):
       for x in range(processed.size[1]):
@@ -169,59 +179,74 @@ class CaptchonkaOCR(object):
       if foundletter == True and inletter == False:
         foundletter = False
         end = y
-        letters.append((start, end))
+
+        # Add character to list
+        characters.append(processed.crop((start, 0, end, processed.size[1])))
       inletter = False
 
-    count = 0
-    letters_list = []
-    for letter in letters:
-      m = hashlib.md5()
-      letter_image = processed.crop(( letter[0], 0, letter[1], processed.size[1] ))
+    return characters
 
-      ones_array = map(lambda lst: map(lambda x: '0' if x == 0 else '1', lst), numpy.array(letter_image))
+  def saveCharacters(self, characters):
+    characters_hashes = []
+
+    # Get characters' hashes
+    for character in characters:
+      m = hashlib.md5()
+
+      # Get image as a string of 0 and 1 (for 255) and n (for new line)
+      ones_array = map(lambda lst: map(lambda x: '0' if x == 0 else '1', lst), numpy.array(character))
       ones_string = 'n'.join(map(lambda lst: ''.join(lst), ones_array))
 
       m.update(ones_string)
-      letter_image.save(os.path.join(self.options.output_char_dir, m.hexdigest() + '.gif'))
 
-      # Keep added files names
-      letters_list.append(m.hexdigest() + '.gif')
+      characters_hashes.append(m.hexdigest())
 
-      count += 1
-
-    print ""
-    print "Training Results:"
-    print "================="
-    print "Number of 'words' extracted: ", count
-    if count == 0:
-      print "\nOuch!. Looks like this type of captcha is resisting to our OCR methods... by the moment ;)\n"
-    else:
-      print "Output folder              : ", self.options.output_char_dir
-      print "Generated %d characters"%count
+    saveAsCategorized = False
 
     if self.options.auto_train:
       # Parse file name and find code
       basename = os.path.basename(self._captcha)
       code = self.getCodeFromString(basename)
 
-      if code:
-        if len(code) != count:
-          print "Error! Training found {0} chars while in file name are specified {1} chars.".format(count, len(code))
-        else:
-          if self.options.verbose:
-            print ""
+      if len(code) != len(characters):
+        saveAsCategorized = False
+        print "Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code))
+      else:
+        saveAsCategorized = True
 
-          for i in range(count):
-            letter = code[i]
-            letter_hash = letters_list[i]
+    if self.options.verbose:
+      if saveAsCategorized:
+        print "\nSaving characters into categorized folders"
+      else:
+        print "\nSaving characters into output folder"
+      print "="*15
 
-            # Move letter into folder
-            letter_src = os.path.join(self.options.output_char_dir, letter_hash)
-            letter_dst = os.path.join(self.options.mod_dir, 'char', letter.lower(), letter_hash)
-            os.rename(letter_src, letter_dst)
+    i = 0
+    for character in characters:
+      character_hash = characters_hashes[i]
 
-            if self.options.verbose:
-              print "Moved letter {0} into its folder".format(letter)
+      if saveAsCategorized:
+        character_symbol = code[i]
+        dst = os.path.join(self.options.mod_dir, 'char', character_symbol.lower(), character_hash + '.gif')
+      else:
+        dst = os.path.join(self.options.output_char_dir, character_hash + '.gif')
+
+      character.save(dst)
+
+      if self.options.verbose and saveAsCategorized:
+        print "Saving {0} into mod folder".format(character_symbol)
+
+      i += 1
+
+  def isTrainingSuccessful(self, characters):
+    if self.options.auto_train:
+      # Parse file name and find code
+      basename = os.path.basename(self._captcha)
+      code = self.getCodeFromString(basename)
+
+      return len(code) == len(characters)
+    else:
+      return len(characters) > 0
 
   def getCodeFromString(self, str):
     codes = re.findall("\[(.*)\]", str)
@@ -236,3 +261,10 @@ class CaptchonkaOCR(object):
       code = codes[0]
 
     return code
+
+  # ###############
+  # Crack part
+  # ###############
+
+  def crack(self):
+    pass
