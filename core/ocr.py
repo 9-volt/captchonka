@@ -6,6 +6,27 @@ from operator import itemgetter
 import os, hashlib, time, re
 import helpers as ImageHelpers
 
+'''
+# Use Denoising
+clean = cv2.fastNlMeansDenoising(numpy.array(im), None, 17, 4, 7)
+im = Image.fromarray(numpy.uint8(clean))
+
+# Contrast
+contr = ImageEnhance.Contrast(im)
+im = contr.enhance(1.3)
+
+# Sharpness
+sharp = ImageEnhance.Sharpness(im)
+im = sharp.enhance(1.1)
+
+# Dilate and Erode image
+_processed = cv.fromarray(numpy.array(processed))
+ImageHelpers.dilateImage(_processed, 1)
+ImageHelpers.erodeImage(_processed, 1)
+
+processed = Image.fromarray(numpy.uint8(_processed))
+'''
+
 class CaptchonkaOCR(object):
   def __init__(self, captcha, options):
     self.options = options
