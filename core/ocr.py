@@ -173,15 +173,20 @@ class CaptchonkaOCR(object):
       inletter = False
 
     count = 0
+    letters_list = []
     for letter in letters:
       m = hashlib.md5()
-      im3 = processed.crop(( letter[0], 0, letter[1], processed.size[1] ))
+      letter_image = processed.crop(( letter[0], 0, letter[1], processed.size[1] ))
 
-      ones_array = map(lambda lst: map(lambda x: '0' if x == 0 else '1', lst), numpy.array(im3))
+      ones_array = map(lambda lst: map(lambda x: '0' if x == 0 else '1', lst), numpy.array(letter_image))
       ones_string = 'n'.join(map(lambda lst: ''.join(lst), ones_array))
 
       m.update(ones_string)
-      im3.save(self.options.output_char_dir + "/%s.gif"%(m.hexdigest()))
+      letter_image.save(os.path.join(self.options.output_char_dir, m.hexdigest() + '.gif'))
+
+      # Keep added files names
+      letters_list.append(m.hexdigest() + '.gif')
+
       count += 1
 
     print ""
@@ -194,4 +199,40 @@ class CaptchonkaOCR(object):
       print "Output folder              : ", self.options.output_char_dir
       print "Generated %d characters"%count
 
-      print "\nNow, move each image to the correct folder on your dictionary: '/iconset/'\n"
+    if self.options.auto_train:
+      # Parse file name and find code
+      basename = os.path.basename(self._captcha)
+      code = self.getCodeFromString(basename)
+
+      if code:
+        if len(code) != count:
+          print "Error! Training found {0} chars while in file name are specified {1} chars.".format(count, len(code))
+        else:
+          if self.options.verbose:
+            print ""
+
+          for i in range(count):
+            letter = code[i]
+            letter_hash = letters_list[i]
+
+            # Move letter into folder
+            letter_src = os.path.join(self.options.output_char_dir, letter_hash)
+            letter_dst = os.path.join(self.options.mod_dir, 'char', letter.lower(), letter_hash)
+            os.rename(letter_src, letter_dst)
+
+            if self.options.verbose:
+              print "Moved letter {0} into its folder".format(letter)
+
+  def getCodeFromString(self, str):
+    codes = re.findall("\[(.*)\]", str)
+    code = None
+
+    if len(codes) == 0:
+      print "Error! No code found in image name"
+    elif len(codes) == 1:
+      code = codes[0]
+    else:
+      print "Warning! Found more than one code in image name"
+      code = codes[0]
+
+    return code
