@@ -3,7 +3,7 @@
 
 from PIL import Image
 from operator import itemgetter
-import os, hashlib, time, re, numpy
+import os, hashlib, time, re, numpy, string
 import helpers as ImageHelpers
 
 '''
@@ -75,6 +75,25 @@ class CaptchonkaOCR(object):
           os.unlink(file_path)
       except Exception, e:
         print e
+
+    if options.mod:
+      chars_dir = os.path.join(options.mod_dir, 'char')
+
+      # Create root chars dir
+      if not os.path.exists(chars_dir):
+        os.makedirs(chars_dir)
+
+      # Create numbers dir
+      for i in range(10):
+        char_dir = os.path.join(chars_dir, str(i))
+        if not os.path.exists(char_dir):
+          os.makedirs(char_dir)
+
+      # Create letters dir
+      for l in string.lowercase[:26]:
+        char_dir = os.path.join(chars_dir, l)
+        if not os.path.exists(char_dir):
+          os.makedirs(char_dir)
 
   def getOriginalImage(self):
     original = None

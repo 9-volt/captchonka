@@ -21,6 +21,9 @@ class captchonka():
     project_folder = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
     self.options.output_dir = os.path.join(project_folder, 'output')
 
+    if self.options.mod:
+      self.options.mod_dir = os.path.join(project_folder, 'core', 'mods', self.options.mod)
+
   def get_OCR(self, captcha):
     options = self.options
 
