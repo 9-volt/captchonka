@@ -17,7 +17,7 @@ class CaptchonkaOCRMod(CaptchonkaOCR):
 
     processed = self.cleanDenoise(processed)
     processed = self.erodeAndDilate(processed)
-    processed = self.blackAndWhite(processed, 140)
+    processed = self.blackAndWhite(processed, 145)
 
     return processed
 
@@ -25,7 +25,8 @@ class CaptchonkaOCRMod(CaptchonkaOCR):
     self.newStep()
     options = self.options
 
-    clean = cv2.fastNlMeansDenoising(numpy.array(processed), None, 30, 6, 14) # Moldcell
+    clean = cv2.fastNlMeansDenoising(numpy.array(processed), None, 32, 8, 14) # Moldcell
+
     processed = Image.fromarray(numpy.uint8(clean))
 
     if options.verbose:
