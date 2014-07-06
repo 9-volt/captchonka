@@ -3,4 +3,4 @@ deprecated
 input/
 output/
 
-core/mods/orange/chars/*
+core/mods/*/chars/*
