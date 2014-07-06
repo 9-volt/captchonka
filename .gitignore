@@ -2,3 +2,5 @@ deprecated
 *.pyc
 input/
 output/
+
+core/mods/orange/chars/*
