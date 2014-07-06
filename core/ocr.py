@@ -3,7 +3,7 @@
 
 from PIL import Image
 from operator import itemgetter
-import os, hashlib, time, re, numpy, string
+import os, hashlib, time, re, numpy, string, math
 import helpers as ImageHelpers
 
 '''
@@ -267,4 +267,109 @@ class CaptchonkaOCR(object):
   # ###############
 
   def crack(self):
-    pass
+    options = self.options
+
+    if not options.mod:
+      print "Error! Can't crack without a mod"
+      return None
+
+    processed = self.getImage()
+    processed = self.cleanImage(processed)
+
+    # List of images
+    characters = self.getCharacters(processed)
+
+    # Check for characters proximity and return most probable value
+    vectorCompare = VectorCompare()
+    iconset = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+    imageset = []
+    last_letter = None
+
+    print "Loading dictionary... "
+    for letter in iconset:
+      char_dir = os.path.join(options.mod_dir, 'char', letter)
+
+      for img in os.listdir(char_dir):
+        temp = []
+        if img != "Thumbs.db" and img != ".DS_Store":
+          if options.verbose:
+            if last_letter != letter:
+              print "-----------------"
+              print "Word:", letter
+              print "-----------------"
+            print img
+            last_letter = letter
+          temp.append(self.buildVector(Image.open(os.path.join(char_dir, img))))
+        imageset.append({letter:temp})
+
+    try:
+      im = self.getImage()
+      im2 = Image.new("P", im.size, 255)
+      im = im.convert("P")
+    except:
+      print "\nError during Cracking process!. is that captcha supported?\n"
+      return None
+
+    count = 0
+    countid = 1
+    word_sug = None
+
+    for letter in characters:
+      print "----------------------------\n"
+      im3 = letter
+      guess = []
+      for image in imageset:
+        for x, y in image.iteritems():
+          if len(y) != 0:
+            guess.append((vectorCompare.relation(y[0], self.buildVector(im3)), x))
+      guess.sort(reverse=True)
+      word_per = guess[0][0] * 100
+      if str(word_per) == "100.0":
+        print "Image position   :", countid
+        print "Broken Percent   :", int(round(float(word_per))), "%", "[+]"
+      else:
+        print "Image position   :", countid
+        print "Broken Percent   :", "%.4f" % word_per, "%"
+      print "------------------"
+      print "Word suggested   :", guess[0][1]
+
+      if word_sug == None:
+        word_sug = str(guess[0][1])
+      else:
+        word_sug = word_sug + str(guess[0][1])
+      count += 1
+      countid = countid + 1
+
+    print "\n=================="
+    if word_sug is None:
+      print "Possible Solution: ", "[ No idea!. Maybe, you need to train more...]"
+    else:
+      print "Possible Solution: ", "[", word_sug, "]"
+    print "==================\n"
+
+    return word_sug
+
+  def buildVector(self, img):
+    dct = {}
+    count = 0
+    for i in img.getdata():
+      dct[count] = i
+      count += 1
+    return dct
+
+
+class VectorCompare:
+
+  def magnitude(self, concordance):
+    total = 0
+    for word, count in concordance.iteritems():
+      # print concordance
+      total += count ** 2
+    return math.sqrt(total)
+
+  def relation(self, concordance1, concordance2):
+    topvalue = 0
+    for word, count in concordance1.iteritems():
+      if concordance2.has_key(word):
+        topvalue += count * concordance2[word]
+    return topvalue / (self.magnitude(concordance1) * self.magnitude(concordance2))
