@@ -15,6 +15,7 @@ class CaptchonkaOCRMod(CaptchonkaOCR):
     if options.verbose:
       processed.save(options.output_dir + '/{}-processed.png'.format(self.getStep()))
 
+    processed = processed.convert("P")
     processed = self.cleanDenoise(processed)
     processed = self.erodeAndDilate(processed)
     processed = self.blackAndWhite(processed, 132)
