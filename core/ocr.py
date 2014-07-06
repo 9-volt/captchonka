@@ -3,7 +3,7 @@
 
 from PIL import Image
 from operator import itemgetter
-import os, hashlib, time, re
+import os, hashlib, time, re, numpy
 import helpers as ImageHelpers
 
 '''
@@ -158,7 +158,11 @@ class CaptchonkaOCR(object):
     for letter in letters:
       m = hashlib.md5()
       im3 = processed.crop(( letter[0], 0, letter[1], processed.size[1] ))
-      m.update("%s%s"%(time.time(), count))
+
+      ones_array = map(lambda lst: map(lambda x: '0' if x == 0 else '1', lst), numpy.array(im3))
+      ones_string = 'n'.join(map(lambda lst: ''.join(lst), ones_array))
+
+      m.update(ones_string)
       im3.save(self.options.output_char_dir + "/%s.gif"%(m.hexdigest()))
       count += 1
 
