@@ -105,8 +105,7 @@ class CaptchonkaOCR(object):
     return original
 
   def train(self):
-    processed = self.getOriginalImage().convert("P")
-
+    processed = self.getOriginalImage()
     processed = self.cleanImage(processed)
     self.divideIntoCharacters(processed)
 
