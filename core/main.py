@@ -49,6 +49,14 @@ class captchonka():
     OCR = self.get_OCR(captcha)
     OCR.crack()
 
+  def batch(self, captcha_folder):
+    OCR = self.get_OCR("")
+    for root, dirs, filenames in os.walk(captcha_folder):
+        for captcha in filenames:
+          OCR._captcha = captcha_folder+captcha
+          # OCR.options.output_dir = OCR.options.output_dir+'/'+captcha.split('.')[0]
+          OCR.train()
+
   def run(self):
     options = self.options
 
@@ -77,6 +85,11 @@ class captchonka():
     if options.crack:
       captcha = options.crack
       self.crack(captcha)
+
+    # Train in Batches
+    if options.batch:
+      captcha_folder = options.batch
+      self.batch(captcha_folder)
 
 if __name__ == "__main__":
   app = captchonka()

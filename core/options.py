@@ -12,6 +12,7 @@ class CaptchonkaOptions(optparse.OptionParser):
 
     self.add_option("-v", "--verbose", action="store_true", dest="verbose", help="active verbose mode output results")
     self.add_option("--train", action="store", dest="train", help="apply common OCR techniques to captcha")
+    self.add_option("--batch", action="store", dest="batch", help="apply common OCR techniques to a folder of captchas")
     self.add_option("--crack", action="store", dest="crack", help="brute force using local dictionary (from: 'iconset/')")
 
     group1 = optparse.OptionGroup(self, "Modules (training)")
