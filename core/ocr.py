@@ -3,6 +3,7 @@
 
 from PIL import Image
 from operator import itemgetter
+from termcolor import colored
 import os, hashlib, time, re, numpy, string, math
 import helpers as ImageHelpers
 
@@ -210,7 +211,7 @@ class CaptchonkaOCR(object):
 
       if len(code) != len(characters):
         saveAsCategorized = False
-        print "Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code))
+        print colored("Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code)), "red")
       else:
         saveAsCategorized = True
 
