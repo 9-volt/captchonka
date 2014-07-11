@@ -8,6 +8,9 @@ import cv2, cv2.cv as cv, numpy
 import helpers as ImageHelpers
 
 class CaptchonkaOCRMod(CaptchonkaOCR):
+  def checkCharacterSizes(self, width=0, height=0):
+    return width > 2 and height > 3
+
   def cleanImage(self, processed):
     self.newStep()
     options = self.options

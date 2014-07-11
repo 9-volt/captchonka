@@ -196,11 +196,14 @@ class CaptchonkaOCR(object):
               # For bottom save all occurences, so the last one will be the bottom
               bottom = vx
 
-        if top >= 0 and top <= bottom:
+        if top >= 0 and top <= bottom and self.checkCharacterSizes(end - start, bottom + 1 - top):
           characters.append(processed.crop((start, top, end, bottom + 1)))
       inletter = False
 
     return characters
+
+  def checkCharacterSizes(self, width=0, height=0):
+    return True
 
   def saveCharacters(self, characters):
     characters_hashes = []
