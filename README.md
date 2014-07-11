@@ -14,6 +14,13 @@ Train:
 
 Based on [CIntruder](https://github.com/epsylon/cintruder).
 
+## Console colors
+
+* *Red* - error
+* *Green* - success
+* *Blue* - info
+* *Yellow* - warning
+
 ## License
 
 General Public License v3
