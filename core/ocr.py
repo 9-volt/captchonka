@@ -4,7 +4,7 @@
 from PIL import Image
 from operator import itemgetter
 from termcolor import colored
-import os, hashlib, time, re, numpy, string, math, random
+import os, hashlib, time, re, numpy, string, math
 import helpers as ImageHelpers
 
 '''
@@ -287,6 +287,8 @@ class CaptchonkaOCR(object):
       print "Error! Can't crack without a mod"
       return None
 
+    supposed_words = []
+
     processed = self.getImage()
     processed = self.cleanImage(processed)
 
@@ -310,7 +312,23 @@ class CaptchonkaOCR(object):
             similarity_best = similarity
             similarity_letter = char
 
+      supposed_words.append((similarity_best, similarity_letter))
       print similarity_best, similarity_letter
+
+    guess = ''
+    multiple_probability = 1.0
+    average_probability = 0
+    for probability, letter in supposed_words:
+      guess += letter
+      multiple_probability *= probability / 100
+      average_probability += probability
+
+    average_probability /= len(guess)
+
+    print '='*15
+    print guess
+    print multiple_probability
+    print average_probability
 
   # Load all available trained characters
   # Return an object with chars as keys
@@ -363,112 +381,19 @@ class CaptchonkaOCR(object):
   # Compare two 2D binarry lists
   # Returns a float from 0 to 100
   def computeSimilarity(self, image1, image2):
-    return random.uniform(0, 100)
+    if len(image1) == 0 or len(image2) == 0 or len(image1[0]) == 0 or len(image2[0]) == 0:
+      return 0
 
-  def crack_old(self):
-    options = self.options
+    width = max(len(image1[0]), len(image2[0]))
+    height = max(len(image1), len(image2))
+    width_small = min(len(image1[0]), len(image2[0]))
+    height_small = min(len(image1), len(image2))
+    area = width * height
+    matches = 0
 
-    if not options.mod:
-      print "Error! Can't crack without a mod"
-      return None
+    for h in range(height_small):
+      for w in range(width_small):
+        if image1[h][w] == image2[h][w]:
+          matches += 1
 
-    processed = self.getImage()
-    processed = self.cleanImage(processed)
-
-    # List of images
-    characters = self.getCharacters(processed)
-
-    # Check for characters proximity and return most probable value
-    vectorCompare = VectorCompare()
-    iconset = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-    imageset = []
-    last_letter = None
-
-    print "Loading dictionary... "
-    for letter in iconset:
-      char_dir = os.path.join(options.mod_dir, 'char', letter)
-
-      for img in os.listdir(char_dir):
-        temp = []
-        if img != "Thumbs.db" and img != ".DS_Store":
-          if options.verbose:
-            if last_letter != letter:
-              print "-----------------"
-              print "Word:", letter
-              print "-----------------"
-            print img
-            last_letter = letter
-          temp.append(self.buildVector(Image.open(os.path.join(char_dir, img))))
-        imageset.append({letter:temp})
-
-    try:
-      im = self.getImage()
-      im2 = Image.new("P", im.size, 255)
-      im = im.convert("P")
-    except:
-      print "\nError during Cracking process!. is that captcha supported?\n"
-      return None
-
-    count = 0
-    countid = 1
-    word_sug = None
-
-    for letter in characters:
-      print "----------------------------\n"
-      im3 = letter
-      guess = []
-      for image in imageset:
-        for x, y in image.iteritems():
-          if len(y) != 0:
-            guess.append((vectorCompare.relation(y[0], self.buildVector(im3)), x))
-      guess.sort(reverse=True)
-      word_per = guess[0][0] * 100
-      if str(word_per) == "100.0":
-        print "Image position   :", countid
-        print "Broken Percent   :", int(round(float(word_per))), "%", "[+]"
-      else:
-        print "Image position   :", countid
-        print "Broken Percent   :", "%.4f" % word_per, "%"
-      print "------------------"
-      print "Word suggested   :", guess[0][1]
-
-      if word_sug == None:
-        word_sug = str(guess[0][1])
-      else:
-        word_sug = word_sug + str(guess[0][1])
-      count += 1
-      countid = countid + 1
-
-    print "\n=================="
-    if word_sug is None:
-      print "Possible Solution: ", "[ No idea!. Maybe, you need to train more...]"
-    else:
-      print "Possible Solution: ", "[", word_sug, "]"
-    print "==================\n"
-
-    return word_sug
-
-  def buildVector(self, img):
-    dct = {}
-    count = 0
-    for i in img.getdata():
-      dct[count] = i
-      count += 1
-    return dct
-
-
-class VectorCompare:
-
-  def magnitude(self, concordance):
-    total = 0
-    for word, count in concordance.iteritems():
-      # print concordance
-      total += count ** 2
-    return math.sqrt(total)
-
-  def relation(self, concordance1, concordance2):
-    topvalue = 0
-    for word, count in concordance1.iteritems():
-      if concordance2.has_key(word):
-        topvalue += count * concordance2[word]
-    return topvalue / (self.magnitude(concordance1) * self.magnitude(concordance2))
+    return 100.0 * matches / area
