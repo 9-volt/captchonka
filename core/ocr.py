@@ -167,10 +167,12 @@ class CaptchonkaOCR(object):
     start = 0
     end = 0
 
+    # Grayscale colors as an array of arrays
+    processed_colors = numpy.array(processed)
+
     for y in range(processed.size[0]):
       for x in range(processed.size[1]):
-        pix = processed.getpixel((y, x))
-        if pix != 255:
+        if processed_colors[x][y] != 255:
           inletter = True
 
       if foundletter == False and inletter == True:
@@ -181,8 +183,21 @@ class CaptchonkaOCR(object):
         foundletter = False
         end = y
 
-        # Add character to list
-        characters.append(processed.crop((start, 0, end, processed.size[1])))
+        # Find vertical bound
+        top = -1
+        bottom = -1
+
+        for vx in range(processed.size[1]):
+          for vy in range(start, end + 1):
+            if processed_colors[vx][vy] == 0:
+              # For top save only first occurence
+              if top == -1:
+                top = vx
+              # For bottom save all occurences, so the last one will be the bottom
+              bottom = vx
+
+        if top >= 0 and top <= bottom:
+          characters.append(processed.crop((start, top, end, bottom + 1)))
       inletter = False
 
     return characters
