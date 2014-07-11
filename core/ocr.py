@@ -4,7 +4,7 @@
 from PIL import Image
 from operator import itemgetter
 from termcolor import colored
-import os, hashlib, time, re, numpy, string, math
+import os, hashlib, time, re, numpy, string, math, random
 import helpers as ImageHelpers
 
 '''
@@ -84,15 +84,10 @@ class CaptchonkaOCR(object):
       if not os.path.exists(chars_dir):
         os.makedirs(chars_dir)
 
-      # Create numbers dir
-      for i in range(10):
+      # Create numbers and letters dir
+      char_folders = range(10) + list(string.lowercase[:26])
+      for i in char_folders:
         char_dir = os.path.join(chars_dir, str(i))
-        if not os.path.exists(char_dir):
-          os.makedirs(char_dir)
-
-      # Create letters dir
-      for l in string.lowercase[:26]:
-        char_dir = os.path.join(chars_dir, l)
         if not os.path.exists(char_dir):
           os.makedirs(char_dir)
 
@@ -286,6 +281,91 @@ class CaptchonkaOCR(object):
   # ###############
 
   def crack(self):
+    options = self.options
+
+    if not options.mod:
+      print "Error! Can't crack without a mod"
+      return None
+
+    processed = self.getImage()
+    processed = self.cleanImage(processed)
+
+    # List of images
+    characters = self.getCharacters(processed)
+    trained_chars = self.loadTrainedChars()
+
+    # Go through each character
+    for character in characters:
+      # Transform image to list of lists
+      a_char = self.imageTo2DBinaryList(character)
+
+      similarity_best = 0.0
+      similarity_letter = None
+
+      for char, chars_list in trained_chars.iteritems():
+        for a_trained_char in chars_list:
+          similarity = self.computeSimilarity(a_char, a_trained_char)
+
+          if similarity > similarity_best:
+            similarity_best = similarity
+            similarity_letter = char
+
+      print similarity_best, similarity_letter
+
+  # Load all available trained characters
+  # Return an object with chars as keys
+  # Each value is a list of images representations
+  # Each image representation is a list of lists with 0s and 1s
+  #
+  # chars = {
+  #   0: []
+  #   1: []
+  #   ...
+  #   a: []
+  #   b: [
+  #     [[0,1],[1,0]]
+  #   ]
+  # }
+  def loadTrainedChars(self):
+    options = self.options
+    chars = {}
+
+    chars_dir = os.path.join(options.mod_dir, 'char')
+
+    if not os.path.exists(chars_dir):
+      print colored('It seems that you did not train this module', 'red')
+      return None
+
+    # Create numbers and letters dir
+    char_folders = range(10) + list(string.lowercase[:26])
+    for i in char_folders:
+      char_dir = os.path.join(chars_dir, str(i))
+      if not os.path.exists(char_dir):
+        if options.verbose:
+          print colored('It seems that there is no folder for char {}'.format(i), 'yellow')
+      else:
+        chars[i] = []
+
+        # Read and load letters
+        for img in os.listdir(char_dir):
+          (root, ext) = os.path.splitext(img)
+
+          # Work only with gifs
+          if ext == '.gif':
+            chars[i].append(self.imageTo2DBinaryList(Image.open(os.path.join(char_dir, img))))
+
+    return chars
+
+  def imageTo2DBinaryList(self, image):
+    # Transform it into an array of 0s and 1s
+    return map(lambda lst: map(lambda x: 0 if x == 0 else 1, lst), numpy.array(image))
+
+  # Compare two 2D binarry lists
+  # Returns a float from 0 to 100
+  def computeSimilarity(self, image1, image2):
+    return random.uniform(0, 100)
+
+  def crack_old(self):
     options = self.options
 
     if not options.mod:
