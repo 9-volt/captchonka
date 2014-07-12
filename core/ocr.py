@@ -174,7 +174,7 @@ class CaptchonkaOCR(object):
         foundletter = True
         start = y
 
-      if foundletter == True and inletter == False:
+      if foundletter == True and (inletter == False or y == processed.size[0] - 1):
         foundletter = False
         end = y
 
