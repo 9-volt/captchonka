@@ -9,7 +9,7 @@ import helpers as ImageHelpers
 
 class CaptchonkaOCRMod(CaptchonkaOCR):
   def checkCharacterSizes(self, width=0, height=0):
-    return width > 2 and height > 3 and width < 20 and height < 20
+    return (width > 2 or width * height >= 16) and height > 3 and width < 20 and height < 20
 
   def cleanImage(self, processed):
     self.newStep()
