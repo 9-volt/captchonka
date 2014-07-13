@@ -99,6 +99,8 @@ class CaptchonkaOCR(object):
 
     processed = self.getImage()
     processed = self.cleanImage(processed)
+    # Ensure that image is in black and white
+    processed = self.blackAndWhite(processed)
 
     # List of images
     characters = self.getCharacters(processed)
@@ -294,6 +296,8 @@ class CaptchonkaOCR(object):
 
     processed = self.getImage()
     processed = self.cleanImage(processed)
+    # Ensure that image is in black and white
+    processed = self.blackAndWhite(processed)
 
     # List of images
     characters = self.getCharacters(processed)
