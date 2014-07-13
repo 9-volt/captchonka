@@ -3,6 +3,7 @@
 
 import os, sys
 from core.options import CaptchonkaOptions
+import core.logger as Logger
 
 # Make core modules available to mods
 sys.path.append('core/')
@@ -15,8 +16,9 @@ class captchonka():
   def create_options(self, args=None):
     self.options = CaptchonkaOptions().get_options(args)
 
-    if self.options.verbose:
-      print "Options", self.options
+    Logger.header('Options')
+    for key, value in self.options.__dict__.items():
+      Logger.log('  ' + key + ': ' + str(value))
 
     project_folder = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
     self.options.output_dir = os.path.join(project_folder, 'output')
@@ -28,9 +30,7 @@ class captchonka():
     options = self.options
 
     if options.mod:
-      if options.verbose:
-        print "Loading module:", options.mod
-        print "==============="
+      Logger.info("\nLoading module: " + options.mod)
 
       # Did not add try/catch because if an error is in
       sys.path.append('core/mods/%s/'%(options.mod))
@@ -65,18 +65,14 @@ class captchonka():
 
     # List mods
     if options.listmods:
-      if options.verbose:
-        print "======================================="
-        print "List of specific OCR exploiting modules"
-        print "======================================="
+      Logger.header("List of mods", True)
 
-      top = 'core/mods/'
-      for root, dirs, files in os.walk(top, topdown=False):
-        for name in files:
-          if name == 'ocr.py':
-            folder = os.path.basename(os.path.normpath(root))
-            print folder
-      print "run with --mod [modname]"
+      mods_dir = "core/mods/"
+
+      for dir in os.listdir(mods_dir):
+        if os.path.isdir(os.path.join(mods_dir, dir)):
+          Logger.log(dir, True)
+
       sys.exit(2)
 
     # Train

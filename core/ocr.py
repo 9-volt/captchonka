@@ -3,9 +3,9 @@
 
 from PIL import Image
 from operator import itemgetter
-from termcolor import colored
 import os, hashlib, time, re, numpy, string, math
 import helpers as ImageHelpers
+import core.logger as Logger
 
 '''
 # Use Denoising
@@ -62,8 +62,7 @@ class CaptchonkaOCR(object):
           if os.path.isfile(file_path):
             os.unlink(file_path)
 
-            if options.verbose:
-              print "Removed preview file {}".format(the_file)
+            Logger.log("Removed preview file {}".format(the_file))
 
         except Exception, e:
           print e
@@ -96,6 +95,8 @@ class CaptchonkaOCR(object):
   # ###############
 
   def train(self):
+    Logger.log("Train on " + self._captcha)
+
     processed = self.getImage()
     processed = self.cleanImage(processed)
 
@@ -113,7 +114,7 @@ class CaptchonkaOCR(object):
     try:
       original = Image.open(self._captcha)
     except:
-      print "Error during reading captcha. Either path is wrond or file format is not supported"
+      Logger.error("Error during reading captcha. Either path is wrond or file format is not supported", True)
 
     return original
 
@@ -197,6 +198,7 @@ class CaptchonkaOCR(object):
 
     return characters
 
+  # Overwrite this method to match mod necessities
   def checkCharacterSizes(self, width=0, height=0):
     return True
 
@@ -224,16 +226,15 @@ class CaptchonkaOCR(object):
 
       if len(code) != len(characters):
         saveAsCategorized = False
-        print colored("Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code)), "red")
+        Logger.error("Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code)), 1)
       else:
         saveAsCategorized = True
 
     if self.options.verbose:
       if saveAsCategorized:
-        print "\nSaving characters into categorized folders"
+        Logger.subheader("Saving characters into categorized folders")
       else:
-        print "\nSaving characters into output folder"
-      print "="*15
+        Logger.log("Saving characters into output folder")
 
     i = 0
     for character in characters:
@@ -247,8 +248,8 @@ class CaptchonkaOCR(object):
 
       character.save(dst)
 
-      if self.options.verbose and saveAsCategorized:
-        print "Saving {0} into mod folder".format(character_symbol)
+      if saveAsCategorized:
+        Logger.log("Saving {0} into mod folder".format(character_symbol))
 
       i += 1
 
@@ -267,11 +268,11 @@ class CaptchonkaOCR(object):
     code = None
 
     if len(codes) == 0:
-      print "Error! No code found in image name"
+      Logger.error("No code found in image name: " + str)
     elif len(codes) == 1:
       code = codes[0]
     else:
-      print "Warning! Found more than one code in image name"
+      Logger.warning("Found more than one code in image name: " + str)
       code = codes[0]
 
     return code
@@ -281,10 +282,12 @@ class CaptchonkaOCR(object):
   # ###############
 
   def crack(self):
+    Logger.info("\nTrain on " + self._captcha)
+
     options = self.options
 
     if not options.mod:
-      print "Error! Can't crack without a mod"
+      Logger.error("Can't crack without a mod")
       return None
 
     supposed_words = []
@@ -295,6 +298,8 @@ class CaptchonkaOCR(object):
     # List of images
     characters = self.getCharacters(processed)
     trained_chars = self.loadTrainedChars()
+
+    Logger.subheader("Detected characters")
 
     # Go through each character
     for character in characters:
@@ -313,7 +318,8 @@ class CaptchonkaOCR(object):
             similarity_letter = char
 
       supposed_words.append((similarity_best, similarity_letter))
-      print similarity_best, similarity_letter
+
+      Logger.log("{} {}%".format(similarity_letter, round(similarity_best, 2)))
 
     guess = ''
     multiple_probability = 1.0
@@ -325,10 +331,13 @@ class CaptchonkaOCR(object):
 
     average_probability /= len(guess)
 
-    print '='*15
-    print guess
-    print multiple_probability
-    print average_probability
+    Logger.subheader("Results")
+    Logger.success(guess)
+
+    Logger.info("{}% Overall probability".format(round(multiple_probability * 100, 2)))
+    Logger.info("{}% Average probability".format(round(average_probability, 2)))
+
+    return guess
 
   # Load all available trained characters
   # Return an object with chars as keys
@@ -351,16 +360,17 @@ class CaptchonkaOCR(object):
     chars_dir = os.path.join(options.mod_dir, 'char')
 
     if not os.path.exists(chars_dir):
-      print colored('It seems that you did not train this module', 'red')
+      Logger.error("It seems that you did not train this module", True)
       return None
+    else:
+      Logger.info("\nLoading trained characters")
 
     # Create numbers and letters dir
     char_folders = range(10) + list(string.lowercase[:26])
     for i in char_folders:
       char_dir = os.path.join(chars_dir, str(i))
       if not os.path.exists(char_dir):
-        if options.verbose:
-          print colored('It seems that there is no folder for char {}'.format(i), 'yellow')
+        Logger.warning("It seems that there is no folder for char {}".format(i))
       else:
         chars[i] = []
 
