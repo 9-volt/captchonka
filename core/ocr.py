@@ -341,7 +341,7 @@ class CaptchonkaOCR(object):
 
     guess = ''
     multiple_probability = 1.0
-    average_probability = 0
+    average_probability = 0.0
     all_guesed = True
     for probability, letter in supposed_words:
       if letter:
@@ -353,7 +353,8 @@ class CaptchonkaOCR(object):
       multiple_probability *= probability / 100
       average_probability += probability
 
-    average_probability /= len(guess)
+    if len(guess):
+      average_probability /= len(guess)
 
     Logger.subheader("Results")
 
