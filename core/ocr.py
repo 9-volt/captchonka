@@ -342,15 +342,26 @@ class CaptchonkaOCR(object):
     guess = ''
     multiple_probability = 1.0
     average_probability = 0
+    all_guesed = True
     for probability, letter in supposed_words:
-      guess += letter
+      if letter:
+        guess += letter
+      else:
+        guess += '_'
+        all_guesed = False
+
       multiple_probability *= probability / 100
       average_probability += probability
 
     average_probability /= len(guess)
 
     Logger.subheader("Results")
-    Logger.success(guess)
+
+    if all_guesed:
+      Logger.success(guess)
+    else:
+      Logger.info("characters marked with _ are the ones that are not guessed:")
+      Logger.error(guess)
 
     Logger.info("{}% Overall probability".format(round(multiple_probability * 100, 2)))
     Logger.info("{}% Average probability".format(round(average_probability, 2)))
