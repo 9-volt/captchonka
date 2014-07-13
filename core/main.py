@@ -60,6 +60,45 @@ class captchonka():
           # OCR.options.output_dir = OCR.options.output_dir+'/'+captcha.split('.')[0]
           OCR.train()
 
+  def batch_crack(self, folder):
+    OCR = self.get_OCR("")
+    test_for_code = True
+    first_crack = True
+    total_cracked = 0
+    total_success = 0
+
+    for file_name in os.listdir(folder):
+      OCR._captcha = os.path.join(folder, file_name)
+      (root, ext) = os.path.splitext(OCR._captcha)
+
+      if ext in ['.png', '.gif', '.jpg', '.jpeg']:
+        # Detect if we should look for codes in titles
+        if first_crack:
+          first_crack = False
+          real_code = OCR.getCodeFromString(file_name)
+
+          if not real_code:
+            test_for_code = False
+
+        if not self.options.verbose:
+          Logger.info("File {}".format(file_name), True)
+
+        code = OCR.crack()
+
+        if test_for_code:
+          real_code = OCR.getCodeFromString(file_name)
+          total_cracked += 1
+          if code and real_code and code.upper() == real_code.upper():
+            total_success += 1
+
+    if test_for_code:
+      if total_success == total_cracked:
+        Logger.success("{}/{} - 100%".format(total_success, total_cracked), True)
+      elif total_success == 0:
+        Logger.error("0/{} - 0%".format(total_cracked), True)
+      else:
+        Logger.warning("{}/{} - {}%".format(total_success, total_cracked, round(100.0 * total_success / total_cracked, 2)), True)
+
   def run(self):
     options = self.options
 
@@ -89,6 +128,10 @@ class captchonka():
     if options.batch:
       captcha_folder = options.batch
       self.batch(captcha_folder)
+
+    # Batch crack with percentage
+    if options.batch_crack:
+      self.batch_crack(options.batch_crack)
 
 if __name__ == "__main__":
   app = captchonka()

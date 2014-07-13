@@ -49,6 +49,8 @@ If overriding `cleanImage` is not enough you may look also override following me
 If you have multiple PNG files in a folder (lets say `input/test/`) than you could run
 `for f in input/test/*.png; do echo $f; python captchonka --mod=violet --crack="$f"; done`
 
+Alternatively you test efficency by cracking a batch of images. Run `python captchonka --mod=violet --batch-crack="input/test/"`.
+
 If you have multiple PNG files for training and each file has its code in name than you could run
 `for f in input/violet/*.png; do python captchonka --mod=violet --train="$f" -a; done`
 
