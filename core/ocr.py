@@ -279,6 +279,8 @@ class CaptchonkaOCR(object):
 
   # Parses a file name to look for code in it
   # Ex. m01-[ABCDE].png -> ABCDE
+  #
+  # @override
   def getCodeFromString(self, str):
     codes = re.findall("\[(.*)\]", str)
     code = None
