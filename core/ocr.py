@@ -120,6 +120,13 @@ class CaptchonkaOCR(object):
 
     return original
 
+  # Method that takes a raw PIL Image instance and returns a processed one
+  # Resulting image should be in white and black (colors 0 and 255)
+  # self.blackAndWhite method may be used to do this
+  # If it is not black and white then it will be automatically transformed to black and white
+  # with 127 as middle color
+  #
+  # @override
   def cleanImage(self, processed):
     self.newStep()
     options = self.options
@@ -156,7 +163,10 @@ class CaptchonkaOCR(object):
 
     return blank
 
-  # Returns a list of images ordered by their position in original image
+  # Returns a list of PIL Images ordered by their position in original image
+  # Each image is a character
+  #
+  # @override
   def getCharacters(self, processed):
     characters = []
 
@@ -200,7 +210,9 @@ class CaptchonkaOCR(object):
 
     return characters
 
-  # Overwrite this method to match mod necessities
+  # Check if found character matches minimal requirements of size
+  #
+  # @override
   def checkCharacterSizes(self, width=0, height=0):
     return True
 
@@ -265,6 +277,8 @@ class CaptchonkaOCR(object):
     else:
       return len(characters) > 0
 
+  # Parses a file name to look for code in it
+  # Ex. m01-[ABCDE].png -> ABCDE
   def getCodeFromString(self, str):
     codes = re.findall("\[(.*)\]", str)
     code = None
@@ -394,6 +408,8 @@ class CaptchonkaOCR(object):
 
   # Compare two 2D binarry lists
   # Returns a float from 0 to 100
+  #
+  # @override
   def computeSimilarity(self, image1, image2):
     if len(image1) == 0 or len(image2) == 0 or len(image1[0]) == 0 or len(image2[0]) == 0:
       return 0
