@@ -25,7 +25,7 @@ Detected characters may be automatically moved into their corresponding folders.
 * Name your image file so that it will contain the code in square brackets: `example-[GPCKC].png`. Square brackets can be placed anywhere in name
 * Run training in auto-mode `python captchonka --mod=violet --train "input/example-[GPCKC].png" -v -a`
 
-If code will be found in image name and its length will correspond to number of found characters then they will be moved into according folders. 
+If code will be found in image name and its length will correspond to number of found characters then they will be moved into according folders.
 
 ## Cracking
 
@@ -58,6 +58,26 @@ If you have multiple PNG files for training and each file has its code in name t
 * *Green* - success
 * *Blue* - info
 * *Yellow* - warning
+
+## Prerequisites
+
+### List of prerequisites
+
+* Python 2.7
+* NumPy
+* SciPy
+* OpenCV
+
+### Installing prerequisites on OS X
+* [Brew](http://brew.sh/) with Science `brew tap homebrew/science`
+* Python `brew install python --framework --universal`
+* Python pip (if it is not installed with Python) `easy_install pip`
+* NumPy `pip install numpy`
+* SciPy `brew install homebrew/python/scipy`
+* OpenCV `brew install opencv`
+
+## Useful resources
+* [SciPy Advanced image processing](http://scipy-lectures.github.io/advanced/image_processing/)
 
 ## Credits
 
