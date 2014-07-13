@@ -6,6 +6,7 @@ from operator import itemgetter
 import os, hashlib, time, re, numpy, string, math
 import helpers as ImageHelpers
 import core.logger as Logger
+from scipy import ndimage
 
 '''
 # Use Denoising
@@ -169,44 +170,41 @@ class CaptchonkaOCR(object):
   # @override
   def getCharacters(self, processed):
     characters = []
+    pixels = numpy.array(processed)
 
-    inletter = False
-    foundletter = False
-    start = 0
-    end = 0
+    # Get an array of True/False values
+    mask = pixels == 0
 
-    # Grayscale colors as an array of arrays
-    processed_colors = numpy.array(processed)
+    # Get groups
+    grouped_array, labels_number = ndimage.label(mask)
 
-    for y in range(processed.size[0]):
-      for x in range(processed.size[1]):
-        if processed_colors[x][y] != 255:
-          inletter = True
+    # Find each group, its start X and Y
+    groups = []
+    for i in range(1, labels_number + 1):
+      left = right = top = bottom = -1
 
-      if foundletter == False and inletter == True:
-        foundletter = True
-        start = y
+      for y, row in enumerate(grouped_array):
+        for x, pixel in enumerate(row):
+          # If it is observed pixel
+          if pixel == i:
+            if left == -1 or x < left:
+              left = x
+            if x > right:
+              right = x
+            if top == -1:
+              top = y
+            if y > bottom:
+              bottom = y
 
-      if foundletter == True and (inletter == False or y == processed.size[0] - 1):
-        foundletter = False
-        end = y
+      letter = map(lambda lst: map(lambda pixel: 255 if pixel == 0 else 0, lst), grouped_array[top:bottom + 1, left:right + 1])
+      groups.append((letter, top, right, bottom, left))
 
-        # Find vertical bound
-        top = -1
-        bottom = -1
+    # Sort by top-left pixel
+    groups.sort(key=itemgetter(4,1))
 
-        for vx in range(processed.size[1]):
-          for vy in range(start, end + 1):
-            if processed_colors[vx][vy] == 0:
-              # For top save only first occurence
-              if top == -1:
-                top = vx
-              # For bottom save all occurences, so the last one will be the bottom
-              bottom = vx
-
-        if top >= 0 and top <= bottom and self.checkCharacterSizes(end - start, bottom + 1 - top):
-          characters.append(processed.crop((start, top, end, bottom + 1)))
-      inletter = False
+    for letter, top, right, bottom, left in groups:
+      if self.checkCharacterSizes(right + 1 - left, bottom + 1 - top):
+        characters.append(Image.fromarray(numpy.uint8(letter)))
 
     return characters
 
