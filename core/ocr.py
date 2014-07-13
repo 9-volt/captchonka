@@ -366,6 +366,8 @@ class CaptchonkaOCR(object):
     Logger.info("{}% Overall probability".format(round(multiple_probability * 100, 2)))
     Logger.info("{}% Average probability".format(round(average_probability, 2)))
 
+    if not options.verbose:
+      Logger.log(guess, True)
     return guess
 
   # Load all available trained characters
