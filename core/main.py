@@ -52,13 +52,19 @@ class captchonka():
     OCR = self.get_OCR(captcha)
     OCR.crack()
 
-  def batch(self, captcha_folder):
+  def batch_train(self, folder):
     OCR = self.get_OCR("")
-    for root, dirs, filenames in os.walk(captcha_folder):
-        for captcha in filenames:
-          OCR._captcha = captcha_folder+captcha
-          # OCR.options.output_dir = OCR.options.output_dir+'/'+captcha.split('.')[0]
-          OCR.train()
+    total_trained = 0
+    total_success = 0
+
+    for file_name in os.listdir(folder):
+      OCR._captcha = os.path.join(folder, file_name)
+      (root, ext) = os.path.splitext(OCR._captcha)
+      if ext in ['.png', '.gif', '.jpg', '.jpeg']:
+        total_trained += 1
+        if OCR.train():
+          total_success += 1
+    self.show_batch_results(total_success,total_trained)
 
   def batch_crack(self, folder):
     OCR = self.get_OCR("")
@@ -92,12 +98,15 @@ class captchonka():
             total_success += 1
 
     if test_for_code:
-      if total_success == total_cracked:
-        Logger.success("{}/{} - 100%".format(total_success, total_cracked), True)
-      elif total_success == 0:
-        Logger.error("0/{} - 0%".format(total_cracked), True)
-      else:
-        Logger.warning("{}/{} - {}%".format(total_success, total_cracked, round(100.0 * total_success / total_cracked, 2)), True)
+      self.show_batch_results(total_success,total_cracked)
+
+  def show_batch_results(self, ideal_result, real_result):
+    if ideal_result == real_result:
+      Logger.success("{}/{} - 100%".format(ideal_result, real_result), True)
+    elif ideal_result == 0:
+      Logger.error("0/{} - 0%".format(real_result), True)
+    else:
+      Logger.warning("{}/{} - {}%".format(ideal_result, real_result, round(100.0 * ideal_result / real_result, 2)), True)
 
   def run(self):
     options = self.options
@@ -124,10 +133,9 @@ class captchonka():
       captcha = options.crack
       self.crack(captcha)
 
-    # Train in Batches
-    if options.batch:
-      captcha_folder = options.batch
-      self.batch(captcha_folder)
+    # Batch train with percentage
+    if options.batch_train:
+      self.batch_train(options.batch_train)
 
     # Batch crack with percentage
     if options.batch_crack:

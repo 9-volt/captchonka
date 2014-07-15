@@ -54,6 +54,8 @@ Alternatively you test efficency by cracking a batch of images. Run `python capt
 If you have multiple PNG files for training and each file has its code in name than you could run
 `for f in input/violet/*.png; do python captchonka --mod=violet --train="$f" -a; done`
 
+Alternatively you can training a batch of images running `python captchonka --mod=violet --batch-train="input/violet/" -a`
+
 ## Console colors
 
 * *Red* - error
@@ -77,6 +79,7 @@ If you have multiple PNG files for training and each file has its code in name t
 * NumPy `pip install numpy`
 * SciPy `brew install homebrew/python/scipy`
 * OpenCV `brew install opencv`
+* Termcolor `pip install termcolor`
 
 ## Useful resources
 * [SciPy Advanced image processing](http://scipy-lectures.github.io/advanced/image_processing/)
