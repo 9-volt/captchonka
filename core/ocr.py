@@ -238,7 +238,8 @@ class CaptchonkaOCR(object):
 
       if len(code) != len(characters):
         saveAsCategorized = False
-        Logger.error("Error! Training found {0} chars while in file name are specified {1} chars.".format(len(characters), len(code)), 1)
+        Logger.error("Error! Training found {0} chars while in file name are specified {1} chars. Real code is: {2}" \
+          .format(len(characters), len(code), basename), 1)
       else:
         saveAsCategorized = True
 
@@ -345,7 +346,7 @@ class CaptchonkaOCR(object):
     all_guesed = True
     for probability, letter in supposed_words:
       if letter:
-        guess += letter
+        guess += str(letter)
       else:
         guess += '_'
         all_guesed = False
